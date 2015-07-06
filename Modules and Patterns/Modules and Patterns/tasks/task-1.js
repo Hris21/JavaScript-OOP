@@ -1,0 +1,225 @@
+/* Task Description */
+/* 
+* Create a module for a Telerik Academy course
+  * The course has a title and presentations
+    * Each presentation also has a title
+    * There is a homework for each presentation
+  * There is a set of students listed for the course
+    * Each student has firstname, lastname and an ID
+      * IDs must be unique integer numbers which are at least 1
+  * Each student can submit a homework for each presentation in the course
+  * Create method init
+    * Accepts a string - course title
+    * Accepts an array of strings - presentation titles
+    * Throws if there is an invalid title
+      * Titles do not start or end with spaces
+      * Titles do not have consecutive spaces
+      * Titles have at least one character
+    * Throws if there are no presentations
+  * Create method addStudent which lists a student for the course
+    * Accepts a string in the format 'Firstname Lastname'
+    * Throws if any of the names are not valid
+      * Names start with an upper case letter
+      * All other symbols in the name (if any) are lowercase letters
+    * Generates a unique student ID and returns it
+  * Create method getAllStudents that returns an array of students in the format:
+    * {firstname: 'string', lastname: 'string', id: StudentID}
+  * Create method submitHomework
+    * Accepts studentID and homeworkID
+      * homeworkID 1 is for the first presentation
+      * homeworkID 2 is for the second one
+      * ...
+    * Throws if any of the IDs are invalid
+  * Create method pushExamResults
+    * Accepts an array of items in the format {StudentID: ..., Score: ...}
+      * StudentIDs which are not listed get 0 points
+    * Throw if there is an invalid StudentID
+    * Throw if same StudentID is given more than once ( he tried to cheat (: )
+    * Throw if Score is not a number
+  * Create method getTopStudents which returns an array of the top 10 performing students
+    * Array must be sorted from best to worst
+    * If there are less than 10, return them all
+    * The final score that is used to calculate the top performing students is done as follows:
+      * 75% of the exam result
+      * 25% the submitted homework (count of submitted homeworks / count of all homeworks) for the course
+*/
+
+function solve() {
+    //Validations <-------------*------------>
+    //NB! I am not expert in regex, help from the internet was used
+    //in order for the regex to work ....at last :).
+
+    function validateName(name) {
+        validationForName.test(name);
+    }
+
+    function validateNameLength(fullName) {
+        if (fullName.length === 1 || fullName.length === 3) {
+            throw new Error('The name name must be in format > Firstname Lastname < .');
+        }
+    }
+
+    function isValidTitle(title) {
+        return !(/^\s+/.test(title) ||
+			/\s+$/.test(title) ||
+			/\s{2,}/.test(title)) && title;
+    }
+
+    function validateTitle(title) {
+        if (!title) {
+            throw new Error('Title cannot be an empty string!');
+        }
+
+        if (!isValidTitle(title)) {
+            throw new Error('Title is not valid!');
+        }
+    }
+
+    function validateID(id) {
+        return id % 1 === 0 && id > 0;
+    }
+
+    function validateIDByMaxStudents(id, max) {
+        return id > 0 && id < max;
+    }
+
+    function validateIDs(studentID, homeworkID, studentsCount, presentationsCount) {
+        if (!validateID(studentID)) {
+            throw new Error('Invalid student ID!');
+        }
+
+        if (!validateID(homeworkID)) {
+            throw new Error('Invalid homework ID!');
+        }
+
+        if (studentID > studentsCount) {
+            throw new Error('Incorrect student ID!');
+        }
+
+        if (homeworkID > presentationsCount) {
+            throw new Error('Incorrect homework ID!');
+        }
+    }
+
+    function validatePresentations(presentations) {
+        if (!presentations.length) {
+            throw new Error('Presentations cannot be an empty array!');
+        }
+
+        if (!presentations.every(isValidTitle)) {
+            throw new Error('Some presentation titles are not valid!');
+        }
+    }
+
+    function validateResults(results) {
+        var uniqueIDs = [],
+			studentID,
+			score;
+
+        results.forEach(function (result) {
+            studentID = result.StudentID;
+            score = result.Score;
+            uniqueIDs.push(studentID);
+
+            if (!isValidID(studentID)) {
+                throw new Error('Invalid student ID!');
+            }
+
+            if (uniqueIDs[studentID]) {
+                throw new Error('A student cannot participate a course more than once!');
+            }
+
+            if (!isNumber(score)) {
+                throw new Error('Score must be a number!');
+            }
+        })
+    }
+
+    //End
+    var validationForName = /^([A-Z][a-z]+([ ]?[a-z]?['-]?[A-Z][a-z]+)*)$/g,
+
+
+Course = {
+    init: function (title, presentations) {
+        validateTitle(title);
+        validatePresentations(presentations);
+
+        this._title = title;
+        this._presentations = presentations;
+        this._students = [];
+        this._studentID = 1;
+
+        return this;
+    },
+
+    addStudent: function (name) {
+   
+        var fullName = name.split(' '),
+        firstName = fullName[0].trim(),
+        lastName = fullName[1].trim();
+        validateNameLength(fullName);
+        validateName(name);
+        this._students.push({
+            firstname: firstName,
+            lastname: lastName,
+            id: this._studentID
+        });
+
+        return this._studentID++;
+    },
+
+    getAllStudents: function () {
+        return this._students.slice();
+    },
+
+    submitHomework: function (studentID, homeworkID) {
+        validateIDs(studentID, homeworkID, this._students.length, this._presentations.length);
+
+        this._homeworks = [];
+        this._homeworks[studentID] = [].push(homeworkID);
+
+        return this;
+    },
+
+    pushExamResults: function (results) {
+        this._results = results.map(function (result) {
+            return isCorrectID(result.StudentID, this._students.length)
+                ? result : {
+                    StudentID: result.StudentID,
+                    Score: 0
+                };
+        });
+
+        return this;
+    },
+
+    getTopStudents: function () {
+        var topStudents = this._students.slice();
+    }
+};
+    Object.defineProperties(Course, {
+
+        title: {
+            get: function () {
+                return this._title;
+            },
+            set: function (title) {
+                this._title = title;
+            }
+        },
+
+        presentations: {
+            get: function () {
+                return this._presentations;
+            },
+            set: function (presentations) {
+                this._presentations = presentations;
+            },
+        }
+    });
+
+    return Course;
+}
+
+
+module.exports = solve;
