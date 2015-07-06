@@ -50,7 +50,7 @@ function solve() {
     //in order for the regex to work ....at last :).
 
     function validateName(name) {
-        validationForName.test(name);
+        return validationForName.test(name);
     }
 
     function validateNameLength(fullName) {
@@ -136,7 +136,7 @@ function solve() {
     }
 
     //End
-    var validationForName = /^([A-Z][a-z]+([ ]?[a-z]?['-]?[A-Z][a-z]+)*)$/g,
+    var validationForName = /^([A-Z][a-z]*) ([A-Z][a-z]*)$/,
 
 
 Course = {
@@ -157,8 +157,13 @@ Course = {
         var fullName = name.split(' '),
         firstName = fullName[0].trim(),
         lastName = fullName[1].trim();
+        
         validateNameLength(fullName);
-        validateName(name);
+       
+        if (!validateName(name)) {
+            throw new Error('Invalid Name');
+        }
+        
         this._students.push({
             firstname: firstName,
             lastname: lastName,
